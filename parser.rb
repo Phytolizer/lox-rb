@@ -9,15 +9,31 @@ class Parser
 
   def parse
     statements = []
-    statements << statement while !at_end
+    statements << declaration while !at_end
     statements
-  rescue ParseError
-    nil
   end
 
   private
 
   class ParseError < StandardError
+  end
+
+  def declaration
+    return var_declaration if match(:VAR)
+    statement
+  rescue ParseError
+    synchronize
+    nil
+  end
+
+  def var_declaration
+    name = consume(:IDENTIFIER, 'Expect variable name.')
+
+    initializer = nil
+    initializer = expression if match(:EQUAL)
+
+    consume(:SEMICOLON, "Expect ';' after variable declaration.")
+    Stmt::Var.new(name, initializer)
   end
 
   def statement
@@ -105,6 +121,7 @@ class Parser
     return Expr::Literal.new(nil) if match(:NIL)
 
     return Expr::Literal.new(previous.literal) if match(:NUMBER, :STRING)
+    return Expr::Variable.new(previous) if match(:IDENTIFIER)
 
     if match(:LEFT_PAREN)
       expr = expression

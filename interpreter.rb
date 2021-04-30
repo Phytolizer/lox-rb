@@ -1,5 +1,6 @@
 require_relative 'ast'
 require_relative 'runtime_error'
+require_relative 'environment'
 
 class Interpreter
   include Expr::Visitor
@@ -7,6 +8,7 @@ class Interpreter
 
   def initialize(lox)
     @lox = lox
+    @environment = Environment.new
   end
 
   def interpret(statements)
@@ -82,6 +84,10 @@ class Interpreter
     nil
   end
 
+  def visit_variable_expr(expr)
+    @environment.get(expr.name)
+  end
+
   def visit_expression_stmt(stmt)
     evaluate(stmt.expression)
   end
@@ -91,6 +97,12 @@ class Interpreter
     puts stringify(value)
   end
 
+  def visit_var_stmt(stmt)
+    value = nil
+    value = evaluate(stmt.initializer) unless stmt.initializer.nil?
+    @environment.define(stmt.name.lexeme, value)
+  end
+
   private
 
   def execute(stmt)
@@ -98,15 +110,15 @@ class Interpreter
   end
 
   def check_number_operand(operator, operand)
-    unless operand.is_a?(Float)
-      raise LoxRuntimeError.new(operator, 'Operand must be a number.') 
-    end
+    return if operand.is_a?(Float)
+
+    raise LoxRuntimeError.new(operator, 'Operand must be a number.')
   end
 
   def check_number_operands(operator, left, right)
-    unless left.is_a?(Float) && right.is_a?(Float)
-      raise LoxRuntimeError.new(operator, 'Operands must be numbers.')
-    end
+    return if left.is_a?(Float) && right.is_a?(Float)
+
+    raise LoxRuntimeError.new(operator, 'Operands must be numbers.')
   end
 
   def truthy?(obj)
@@ -122,9 +134,7 @@ class Interpreter
 
     if obj.is_a?(Float)
       text = obj.to_s
-      if text =~ /\.0$/
-        text = text[0...text.length - 2]
-      end
+      text = text[0...text.length - 2] if text =~ /\.0$/
       return text
     end
 

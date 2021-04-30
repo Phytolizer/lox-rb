@@ -12,6 +12,7 @@ module Expr
     attr_implement :visit_grouping_expr, [:expr]
     attr_implement :visit_literal_expr, [:expr]
     attr_implement :visit_unary_expr, [:expr]
+    attr_implement :visit_variable_expr, [:expr]
   end
 
   ## A binary expression.
@@ -53,6 +54,14 @@ module Expr
       visitor.visit_unary_expr(self)
     end
   end
+
+  class Variable < Base
+    attr_value_initialize :name
+
+    def accept(visitor)
+      visitor.visit_variable_expr(self)
+    end
+  end
 end
 
 module Stmt
@@ -62,6 +71,7 @@ module Stmt
   module Visitor
     attr_implement :visit_expression_stmt, [:stmt]
     attr_implement :visit_print_stmt, [:stmt]
+    attr_implement :visit_var_stmt, [:stmt]
   end
 
   class Expression < Base
@@ -77,6 +87,14 @@ module Stmt
 
     def accept(visitor)
       visitor.visit_print_stmt(self)
+    end
+  end
+
+  class Var < Base
+    attr_value_initialize :name, :initializer
+
+    def accept(visitor)
+      visitor.visit_var_stmt(self)
     end
   end
 end
