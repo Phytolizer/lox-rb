@@ -1,0 +1,18 @@
+GIT
+  remote: https://github.com/barsoom/attr_extras
+  revision: abebc098fd993a9ac09c54be36f07bc6b5679a4c
+  specs:
+    attr_extras (6.2.4)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+
+PLATFORMS
+  x64-mingw32
+
+DEPENDENCIES
+  attr_extras!
+
+BUNDLED WITH
+   2.1.4
