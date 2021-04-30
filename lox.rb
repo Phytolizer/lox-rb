@@ -21,7 +21,7 @@ class Lox
     stmts = parser.parse
     return if @had_error
 
-    @interpreter.interpret(expr)
+    @interpreter.interpret(stmts)
   end
 
   def run_file(path)

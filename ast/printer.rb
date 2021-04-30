@@ -24,7 +24,7 @@ class AstPrinter
     if expr.value.nil?
       'nil'
     else
-      expr.value.to_s
+      expr.value.to_s.sub(/\.0$/, '')
     end
   end
 
