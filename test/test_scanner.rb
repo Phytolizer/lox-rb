@@ -29,6 +29,24 @@ class TestScanner < Minitest::Test
     end
   end
 
+  def scan(input)
+    lox = Lox.new
+    s = Scanner.new(lox, input)
+    s.scan_tokens
+  end
+
+  def check_error(input, message)
+    assert_output(nil, "#{message}\n") do
+      scan(input)
+    end
+  end
+
+  def assert_token(token, type, lexeme, literal = nil)
+    assert_equal type, token.type
+    assert_equal lexeme, token.lexeme
+    assert_equal literal, token.literal unless literal.nil?
+  end
+
   public
 
   def test_single_tokens
@@ -37,9 +55,8 @@ class TestScanner < Minitest::Test
         lox = Lox.new
         s = Scanner.new(lox, ex)
         tokens = s.scan_tokens
-        assert !lox.had_error, "lox had an error processing #{ex}"
-        assert_equal type, tokens[0].type
-        assert_equal ex, tokens[0].lexeme
+        refute lox.had_error, "lox had an error processing #{ex}"
+        assert_token tokens[0], type, ex
       end
     end
   end
@@ -51,13 +68,27 @@ class TestScanner < Minitest::Test
           lox = Lox.new
           s = Scanner.new(lox, "#{xleft}#{sep}#{xright}")
           tokens = s.scan_tokens
-          assert !lox.had_error, "lox had an error processing #{xleft}#{sep}#{xright}"
-          assert_equal left, tokens[0].type
-          assert_equal xleft, tokens[0].lexeme
-          assert_equal right, tokens[1].type
-          assert_equal xright, tokens[1].lexeme
+          refute lox.had_error, "lox had an error processing #{xleft}#{sep}#{xright}"
+          assert_token tokens[0], left, xleft
+          assert_token tokens[1], right, xright
         end
       end
     end
+  end
+
+  def test_invalid_numbers
+    tokens = scan('3.')
+    assert_equal 3, tokens.length
+    assert_token tokens[0], :NUMBER, '3', 3
+    assert_token tokens[1], :DOT, '.'
+    assert_token tokens[2], :EOF, ''
+
+  end
+
+  def test_errors
+    check_error('@', '[line 1] Error: Unexpected character.')
+    check_error('true@', '[line 1] Error: Unexpected character.')
+    check_error("true\n@", '[line 2] Error: Unexpected character.')
+    check_error('"test', '[line 1] Error: Unterminated string.')
   end
 end
